@@ -1,0 +1,20 @@
+[project]
+name = "ws"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "itsmanojthapa", email = "itsmanojthapa@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "db", "common", "pydantic-models",
+    "websockets>=16.0",
+]
+
+[project.scripts]
+ws = "ws.main:start" # uv run -p ws ws # run ws package ws script
+
+[build-system]
+requires = ["uv_build>=0.9.17,<0.10.0"]
+build-backend = "uv_build"

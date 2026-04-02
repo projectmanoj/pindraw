@@ -1,0 +1,18 @@
+[project]
+name = "db"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "itsmanojthapa", email = "itsmanojthapa@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[standard]>=0.135.2",
+    "psycopg2>=2.9.11",
+    "sqlalchemy>=2.0.48",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.17,<0.10.0"]
+build-backend = "uv_build"

@@ -1,0 +1,19 @@
+[project]
+name = "pindraw-backend"
+version = "0.1.0"
+description = "backend for pindraw application"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["api","ws","db", "common", "pydantic-models"]
+
+
+[tool.uv.sources]
+api = { workspace = true }
+ws = { workspace = true }
+db = { workspace = true }
+common = { workspace = true }
+pydantic-models = { workspace = true }
+
+
+[tool.uv.workspace]
+members = ["apps/*", "packages/*"]

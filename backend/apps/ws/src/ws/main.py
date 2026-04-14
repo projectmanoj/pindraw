@@ -1,3 +1,5 @@
+from typing import List
+from pydantic import BaseModel
 import uvicorn
 import os
 from dotenv import load_dotenv
@@ -104,15 +106,43 @@ async def websocket_endpoint(websocket: WebSocket, client_id: int):
         await manager.broadcast(f"Client #{client_id} left the chat")
 
 
+# -------------------------------------------------------------------------------------------------------------
+
+
+class User(BaseModel):
+    ws: WebSocket
+    rooms: List[str]
+    userId: str
+
+
+rooms: List[User] = []
+
+"""
+{
+    "type": "chat", "leave_room", "join_room"
+    "roomId": "2343"
+    "message": "hii tere"
+}
+"""
+
+
 @app.websocket("/ws")
 async def websocket(websocket: WebSocket, token: str):
     # decode = jwt.decode(token)
     # if decode in None: manager.disconnect(websocket)
+
+    """
+    data = await websocket.receive_text()
+    websocket.sendToAllConnection
+    then add data in Queue so that workers add it to DB -
+    # i think worker is good enough no need for redis or may be needed for multiple instance of BE
+    """
+
     print(token)
 
 
 def start():
-    #     """Entry point for the 'ws' script."""
+    #     """Entry poinat for the 'ws' script."""
     #     uvicorn.run("ws.main:app", host="0.0.0.0", port=8001, reload=True)
     uvicorn.run(
         app="ws.main:app",

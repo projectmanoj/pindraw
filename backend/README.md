@@ -35,3 +35,26 @@ cat ./apps/payment-service/pyproject.toml
 uv sync --all-packages
 uv build --all-packages
 ```
+
+## Add and remove Apps
+
+### add
+
+```bash
+uv init apps/tempapp --package --name tempapp
+# ROOT: pyproject.toml
+# dependencies = [ "tempapp" ]
+# [tool.uv.sources]
+# tempapp = { workspace = true }
+# [tool.uv.workspace]
+# members = ["apps/*", "packages/*"]
+uv sync --all-packages
+uv run tempp tempapp
+```
+
+### remove
+
+```bash
+uv remove tempapp
+rm -r apps/tempapp
+```

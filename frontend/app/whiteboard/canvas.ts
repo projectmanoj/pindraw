@@ -1,21 +1,23 @@
 import { RoughCanvas } from "roughjs/bin/canvas";
 import React from "react";
-import { Options, Shapes, ShapesTypes } from "./types";
+import { FillStyle, Options, Shapes, ShapesTypes } from "./types";
+import { Options as DefaultRoughOptions } from "roughjs/bin/core";
 
 export const DefaultOptions: Options = {
   seed: 12345,
   fill: "yellow",
-  bowing: 1,
+  bowing: 10,
   fillStyle: "cross-hatch",
   stroke: "silver",
   strokeWidth: 3,
-  roughness: 1,
+  roughness: 0,
 };
 
 export class WhiteBoard {
-  private drawBoard: RoughCanvas;
+  private canvRef: React.RefObject<HTMLCanvasElement>;
   private ctx: CanvasRenderingContext2D;
   private canvasBoard: HTMLCanvasElement;
+  private drawBoard: RoughCanvas;
 
   private data: Shapes[] = [
     {
@@ -33,7 +35,10 @@ export class WhiteBoard {
     },
   ];
 
-  private type: ShapesTypes | null = "circle";
+  private type: ShapesTypes | null = "rectangle";
+  private fillColor: string = "red";
+  private fillStyle: FillStyle = "hachure";
+
   private start: boolean = false;
   private x: number | null = null;
   private y: number | null = null;
@@ -41,19 +46,24 @@ export class WhiteBoard {
   private height: number | null = null;
 
   constructor({
-    canvasBoard,
-    drawBoard,
+    canvRef,
     keyboardEventHandler,
   }: {
-    drawBoard: RoughCanvas;
-    canvasBoard: HTMLCanvasElement;
+    canvRef: React.RefObject<HTMLCanvasElement>;
     keyboardEventHandler: React.Dispatch<
       React.SetStateAction<(e: KeyboardEvent) => void>
     >;
   }) {
-    this.canvasBoard = canvasBoard;
-    this.ctx = canvasBoard.getContext("2d")!;
-    this.drawBoard = drawBoard;
+    canvRef.current.width = window.innerWidth;
+    canvRef.current.height = window.innerHeight;
+    this.canvRef = canvRef;
+    this.canvasBoard = this.canvRef.current;
+    this.ctx = this.canvasBoard.getContext("2d")!;
+    this.drawBoard = new RoughCanvas(this.canvasBoard, {
+      options: {
+        ...(DefaultOptions as DefaultRoughOptions),
+      },
+    });
     this.init();
     this.initMouseHandlers();
     keyboardEventHandler(() => this.keyboardEventHandler);
@@ -76,21 +86,32 @@ export class WhiteBoard {
       this.render();
       if (this.x && this.y) {
         this.start = true;
-        // this.addItem({
-        //   type: "rect",
-        //   x: this.x,
-        //   y: this.y,
-        //   width: e.x - this.x,
-        //   height: e.y - this.y,
-        // });
-        this.addItem({
-          type: "circle",
-          centerX: this.x,
-          centerY: this.y,
-          diameter:
-            2 *
-            Math.sqrt(Math.pow(e.x - this.x, 2) + Math.pow(e.y - this.y, 2)),
-        });
+        if (this.type === "rectangle") {
+          this.addItem({
+            type: "rectangle",
+            x: this.x,
+            y: this.y,
+            width: e.x - this.x,
+            height: e.y - this.y,
+            options: {
+              fill: this.fillColor,
+              fillStyle: this.fillStyle,
+            },
+          });
+        } else if (this.type === "circle") {
+          this.addItem({
+            type: "circle",
+            centerX: this.x,
+            centerY: this.y,
+            diameter:
+              2 *
+              Math.sqrt(Math.pow(e.x - this.x, 2) + Math.pow(e.y - this.y, 2)),
+            options: {
+              fill: this.fillColor,
+              fillStyle: this.fillStyle,
+            },
+          });
+        }
       }
     }
   };
@@ -100,21 +121,32 @@ export class WhiteBoard {
 
     if (this.x && this.y) {
       if (!(this.x === e.x && this.y === e.y)) {
-        // this.data.push({
-        //   type: "rect",
-        //   x: this.x,
-        //   y: this.y,
-        //   width: e.x - this.x,
-        //   height: e.y - this.y,
-        // });
-        this.data.push({
-          type: "circle",
-          centerX: this.x,
-          centerY: this.y,
-          diameter:
-            2 *
-            Math.sqrt(Math.pow(e.x - this.x, 2) + Math.pow(e.y - this.y, 2)),
-        });
+        if (this.type === "rectangle") {
+          this.data.push({
+            type: "rectangle",
+            x: this.x,
+            y: this.y,
+            width: e.x - this.x,
+            height: e.y - this.y,
+            options: {
+              fill: this.fillColor,
+              fillStyle: this.fillStyle,
+            },
+          });
+        } else if (this.type === "circle") {
+          this.data.push({
+            type: "circle",
+            centerX: this.x,
+            centerY: this.y,
+            diameter:
+              2 *
+              Math.sqrt(Math.pow(e.x - this.x, 2) + Math.pow(e.y - this.y, 2)),
+            options: {
+              fill: this.fillColor,
+              fillStyle: this.fillStyle,
+            },
+          });
+        }
       }
     }
     this.start = false;
@@ -137,13 +169,20 @@ export class WhiteBoard {
 
   addItem(item: Shapes) {
     if (item.type === "rectangle") {
-      this.drawBoard.rectangle(item.x, item.y, item.width, item.height, {
-        ...DefaultOptions,
-      });
+      this.drawBoard.rectangle(
+        item.x,
+        item.y,
+        item.width,
+        item.height,
+        item.options,
+      );
     } else if (item.type === "circle") {
-      this.drawBoard.circle(item.centerX, item.centerY, item.diameter, {
-        ...DefaultOptions,
-      });
+      this.drawBoard.circle(
+        item.centerX,
+        item.centerY,
+        item.diameter,
+        item.options,
+      );
     }
   }
 
@@ -163,6 +202,7 @@ export class WhiteBoard {
     console.log(e.key);
     if (e.key === "Escape") {
       console.log("Escape");
+      this.start = false;
       this.x = null;
       this.y = null;
       this.width = null;
